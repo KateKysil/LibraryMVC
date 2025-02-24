@@ -1,0 +1,29 @@
+﻿@model long  // Id полиці
+
+@{
+    ViewData["Title"] = "Add Book to Shelf";
+}
+
+<h1>Add Book to Shelf</h1>
+
+<form asp-action="AddBook" method="post">
+    <input type="hidden" name="shelfId" value="@Model" />
+
+    <div class="form-group">
+        <label for="BookId">Select a Book</label>
+        <select name="bookId" class="form-control">
+            @foreach (var book in ViewBag.AvailableBooks)
+            {
+                <option value="@book.Id">@book.Title (@book.Publisher.PublisherName)</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="Comment">Comment</label>
+        <input type="text" name="comment" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Add Book</button>
+    <a asp-action="Details" asp-route-id="@Model" class="btn btn-secondary">Back to Shelf</a>
+</form>
