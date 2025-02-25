@@ -173,6 +173,21 @@ namespace LibraryInfrastructure.Controllers
                 return NotFound();
             }
             ViewData["PublisherId"] = new SelectList(_context.Publishers, "Id", "PublisherName", book.PublisherId);
+            ViewBag.Authors = new MultiSelectList(
+                _context.Authors.Select(a => new {
+                    a.Id,
+                    FullName = a.LastName + " " + a.FirstName
+                }),
+                "Id",
+                "FullName"
+            );
+            ViewBag.Genres = new MultiSelectList(_context.Genre.Select(g => new
+            {
+                g.Id,
+                g.GenreName
+            }),
+            "Id",
+            "GenreName");
             return View(book);
         }
 
@@ -181,18 +196,46 @@ namespace LibraryInfrastructure.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long id, [Bind("Title,Isbn,PublisherId,Id")] Book book)
+        public async Task<IActionResult> Edit(long id, [Bind("Title,Isbn,PublisherId,Id")] Book book, List<long> selectAuthorsforBook, List<long> selectGenresforBook)
         {
             if (id != book.Id)
             {
                 return NotFound();
             }
-
+            ModelState.Remove("Publisher");
             if (ModelState.IsValid)
             {
                 try
                 {
                     _context.Update(book);
+                    await _context.SaveChangesAsync();
+                    if(selectAuthorsforBook.Count > 0)
+                    {
+                        var existingAuthors = _context.BookAuthors.Where(ba => ba.BookId == book.Id);
+                        _context.BookAuthors.RemoveRange(existingAuthors);
+                    }
+                    foreach (var authorId in selectAuthorsforBook)
+                    {
+                        _context.BookAuthors.Add(new BookAuthor
+                        {
+                            BookId = book.Id,
+                            AuthorId = authorId
+                        });
+                    }
+                    if(selectGenresforBook.Count > 0)
+                    {
+                        var existingGenres = _context.BookGenres.Where(bg => bg.bookid == book.Id);
+                        _context.BookGenres.RemoveRange(existingGenres);
+                    }
+                    foreach (var genreId in selectGenresforBook)
+                    {
+                        _context.BookGenres.Add(new BookGenre
+                        {
+                            bookid = book.Id,
+                            genreid = genreId
+                        });
+                    }
+
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -209,6 +252,21 @@ namespace LibraryInfrastructure.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["PublisherId"] = new SelectList(_context.Publishers, "Id", "PublisherName", book.PublisherId);
+            ViewBag.Authors = new MultiSelectList(
+                _context.Authors.Select(a => new {
+                    a.Id,
+                    FullName = a.LastName + " " + a.FirstName
+                }),
+                "Id",
+                "FullName"
+            );
+            ViewBag.Genres = new MultiSelectList(_context.Genre.Select(g => new
+            {
+                g.Id,
+                g.GenreName
+            }),
+            "Id",
+            "GenreName");
             return View(book);
         }
 
@@ -237,8 +295,15 @@ namespace LibraryInfrastructure.Controllers
         public async Task<IActionResult> DeleteConfirmed(long id)
         {
             var book = await _context.Books.FindAsync(id);
+            
             if (book != null)
             {
+                var bookAuthors = _context.BookAuthors.Where(ba => ba.BookId == id);
+                _context.BookAuthors.RemoveRange(bookAuthors);
+                var bookGenres = _context.BookGenres.Where(bg => bg.bookid == id);
+                _context.BookGenres.RemoveRange(bookGenres);
+                var bookShelves = _context.ShelfBooks.Where(bg => bg.BookId == id);
+                _context.ShelfBooks.RemoveRange(bookShelves);
                 _context.Books.Remove(book);
             }
 

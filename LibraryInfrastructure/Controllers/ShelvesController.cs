@@ -55,6 +55,60 @@ namespace LibraryInfrastructure.Controllers
             return View(shelf);
         }
 
+        public async Task<IActionResult> Details_User(long? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var shelf = _context.Shelves
+           .Include(s => s.User)
+           .Include(s => s.ShelfBooks)
+           .ThenInclude(sb => sb.Book)
+           .ThenInclude(b => b.Publisher)
+           .Include(s => s.ShelfBooks)
+           .ThenInclude(sb => sb.Book.BookAuthors)
+           .ThenInclude(ba => ba.Author)
+           .Include(s => s.ShelfBooks)
+           .ThenInclude(sb => sb.Book.BookGenres)
+           .ThenInclude(bg => bg.Genre)
+           .FirstOrDefault(m => m.Id == id);
+
+            if (shelf == null)
+            {
+                return NotFound();
+            }
+
+            return View(shelf);
+        }
+        public async Task<IActionResult> Details_Admin(long? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var shelf = _context.Shelves
+           .Include(s => s.User)
+           .Include(s => s.ShelfBooks)
+           .ThenInclude(sb => sb.Book)
+           .ThenInclude(b => b.Publisher)
+           .Include(s => s.ShelfBooks)
+           .ThenInclude(sb => sb.Book.BookAuthors)
+           .ThenInclude(ba => ba.Author)
+           .Include(s => s.ShelfBooks)
+           .ThenInclude(sb => sb.Book.BookGenres)
+           .ThenInclude(bg => bg.Genre)
+           .FirstOrDefault(m => m.Id == id);
+
+            if (shelf == null)
+            {
+                return NotFound();
+            }
+
+            return View(shelf);
+        }
         // GET: Shelves/Create
         public IActionResult Create()
         {
@@ -133,6 +187,22 @@ namespace LibraryInfrastructure.Controllers
             return RedirectToAction("Details", new { id = shelfId });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> DeleteFromShelf(long shelfId, long bookId)
+        {
+            var shelfBook = await _context.ShelfBooks
+                .FirstOrDefaultAsync(sb => sb.ShelfId == shelfId && sb.BookId == bookId);
+
+            if (shelfBook == null)
+            {
+                return NotFound();
+            }
+
+            _context.ShelfBooks.Remove(shelfBook);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Details_User", new { id = shelfId });
+        }
 
         // GET: Shelves/Edit/5
         public async Task<IActionResult> Edit(long? id)
@@ -214,6 +284,8 @@ namespace LibraryInfrastructure.Controllers
             var shelf = await _context.Shelves.FindAsync(id);
             if (shelf != null)
             {
+                var shelfBooks = _context.ShelfBooks.Where(sb => sb.ShelfId == id);
+                _context.ShelfBooks.RemoveRange(shelfBooks);
                 _context.Shelves.Remove(shelf);
             }
 

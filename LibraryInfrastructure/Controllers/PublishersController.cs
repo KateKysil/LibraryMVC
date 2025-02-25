@@ -140,14 +140,29 @@ namespace LibraryInfrastructure.Controllers
         public async Task<IActionResult> DeleteConfirmed(long id)
         {
             var publisher = await _context.Publishers.FindAsync(id);
+
             if (publisher != null)
             {
+                var books = _context.Books.Where(b => b.PublisherId == id).ToList();
+
+                foreach (var book in books)
+                {
+                    var bookAuthors = _context.BookAuthors.Where(ba => ba.BookId == book.Id);
+                    _context.BookAuthors.RemoveRange(bookAuthors);
+                    var bookGenres = _context.BookGenres.Where(bg => bg.bookid == book.Id);
+                    _context.BookGenres.RemoveRange(bookGenres);
+                    var shelfBooks = _context.ShelfBooks.Where(sb => sb.BookId == book.Id);
+                    _context.ShelfBooks.RemoveRange(shelfBooks);
+                    _context.Books.Remove(book);
+                }
                 _context.Publishers.Remove(publisher);
+
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
 
         private bool PublisherExists(long id)
         {

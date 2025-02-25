@@ -140,14 +140,18 @@ namespace LibraryInfrastructure.Controllers
         public async Task<IActionResult> DeleteConfirmed(long id)
         {
             var genre = await _context.Genre.FindAsync(id);
+
             if (genre != null)
             {
+                var bookGenres = _context.BookGenres.Where(bg => bg.genreid == id);
+                _context.BookGenres.RemoveRange(bookGenres);
                 _context.Genre.Remove(genre);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
 
         private bool GenreExists(long id)
         {
