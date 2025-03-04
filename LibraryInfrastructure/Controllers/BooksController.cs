@@ -116,6 +116,10 @@ namespace LibraryInfrastructure.Controllers
             //    }
             //}
             ModelState.Remove("Publisher");
+            if (_context.Books.Any(b => b.Isbn == book.Isbn))
+            {
+                ModelState.AddModelError("Isbn", "This ISBN is already in use.");
+            }
             if (ModelState.IsValid)
             {
                 _context.Add(book);
@@ -203,6 +207,10 @@ namespace LibraryInfrastructure.Controllers
                 return NotFound();
             }
             ModelState.Remove("Publisher");
+            if (_context.Books.Any(b => b.Isbn == book.Isbn))
+            {
+                ModelState.AddModelError("Isbn", "This ISBN is already in use.");
+            }
             if (ModelState.IsValid)
             {
                 try

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace LibraryDomain.Model;
 
@@ -9,7 +10,7 @@ public partial class Book: Entity
     public string Title { get; set; } = null!;
 
     public string Isbn { get; set; } = null!;
-
+    [Display(Name = "Назва видавництва")]
     public long PublisherId { get; set; }
 
     public virtual ICollection<BookAuthor> BookAuthors { get; set; } = new List<BookAuthor>();

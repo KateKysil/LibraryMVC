@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace LibraryDomain.Model;
 
 public partial class Review : Entity
 {
-
+    [Display(Name = "Книга")]
     public long BookId { get; set; }
-
+    [Display(Name = "Користувач")]
     public long UserId { get; set; }
 
     public string Text { get; set; } = null!;

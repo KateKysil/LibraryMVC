@@ -25,6 +25,11 @@ namespace LibraryInfrastructure.Controllers
             var libraryContext = _context.Shelves.Include(s => s.User);
             return View(await libraryContext.ToListAsync());
         }
+        public async Task<IActionResult> Index_User()
+        {
+            var libraryContext = _context.Shelves.Include(s => s.User);
+            return View(await libraryContext.ToListAsync());
+        }
 
         // GET: Shelves/Details/5
         public async Task<IActionResult> Details(long? id)
