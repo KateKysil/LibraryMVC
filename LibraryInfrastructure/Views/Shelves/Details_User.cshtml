@@ -71,7 +71,7 @@
                     <form asp-controller="Shelves" asp-action="DeleteFromShelf" method="post" style="display:inline;">
                         <input type="hidden" name="shelfId" value="@Model.Id" />
                         <input type="hidden" name="bookId" value="@shelfBook.Book.Id" />
-                        <button>Delete from shelf</button>
+                        <button class="btn btn-outline-danger">Delete from shelf</button>
                     </form>
                 </td>
             </tr>
@@ -81,7 +81,7 @@
 
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">Edit Shelf</a>
-    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    <a asp-action="Index" class="btn btn-info">Back to List</a>
 </div>
 
 <hr />
