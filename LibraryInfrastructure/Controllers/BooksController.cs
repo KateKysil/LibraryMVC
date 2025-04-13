@@ -79,6 +79,39 @@ namespace LibraryInfrastructure.Controllers
 
             return View(book);
         }
+        public async Task<IActionResult> Comment(long? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var book = await _context.Books
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction("Create", "Reviews", new { id = book.Id});
+        }
+
+        public async Task<IActionResult> Comments(long? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var book = await _context.Books
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction("Index", "Reviews", new { id = book.Id, name = book.Title, type = "book" });
+        }
 
         // GET: Books/Create
         public IActionResult Create()
@@ -171,7 +204,8 @@ namespace LibraryInfrastructure.Controllers
                 return NotFound();
             }
 
-            var book = await _context.Books.FindAsync(id);
+            var book = await _context.Books.Include(b => b.BookAuthors).
+                ThenInclude(ba => ba.Author).FirstOrDefaultAsync(b => b.Id == id);
             if (book == null)
             {
                 return NotFound();

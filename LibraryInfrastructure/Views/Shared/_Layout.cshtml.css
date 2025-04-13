@@ -7,6 +7,14 @@ a.navbar-brand {
   word-break: break-all;
 }
 
+body {
+    /*background-image: url('img/books_back.jpg');*/
+    margin: 0;
+}
+#mymain {
+    /*background-image: url('img/books_back.jpg');*/
+    margin: 0;
+}
 a {
   color: #0077cc;
 }
@@ -40,9 +48,9 @@ button.accept-policy {
 }
 
 .footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  white-space: nowrap;
-  line-height: 60px;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px;
 }

@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using LibraryDomain.Model;
 using LibraryInfrastracture;
+using System.IO;
+using System.Threading;
+using LibraryInfrastructure.Services;
 
 namespace LibraryInfrastructure.Controllers
 {
@@ -14,9 +17,12 @@ namespace LibraryInfrastructure.Controllers
     {
         private readonly LibraryContext _context;
 
+        private readonly PublisherDataPortServiceFactory _publisherDataPortServiceFactory;
+
         public PublishersController(LibraryContext context)
         {
             _context = context;
+            _publisherDataPortServiceFactory = new PublisherDataPortServiceFactory(_context);
         }
 
         // GET: Publishers
@@ -115,6 +121,62 @@ namespace LibraryInfrastructure.Controllers
             }
             return View(publisher);
         }
+        [HttpGet]
+        public IActionResult Import()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Import(IFormFile fileExcel, CancellationToken cancellationToken = default)
+        {
+            var importService = _publisherDataPortServiceFactory.GetImportService(fileExcel.ContentType);
+
+            using var stream = fileExcel.OpenReadStream();
+
+            await importService.ImportFromStreamAsync(stream, cancellationToken);
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Export([FromQuery] string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    CancellationToken cancellationToken = default)
+        {
+            var exportService = _publisherDataPortServiceFactory.GetExportService(contentType);
+
+            var memoryStream = new MemoryStream();
+
+            await exportService.WriteToAsync(memoryStream, cancellationToken);
+
+            await memoryStream.FlushAsync(cancellationToken);
+            memoryStream.Position = 0;
+
+
+            return new FileStreamResult(memoryStream, contentType)
+            {
+                FileDownloadName = $"categories_{DateTime.UtcNow.ToShortDateString()}.xlsx"
+            };
+        }
+        [HttpGet]
+        public async Task<IActionResult> ExportDocx(CancellationToken cancellationToken)
+        {
+            var contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            var exportService = _publisherDataPortServiceFactory.GetExportService(contentType);
+
+            var memoryStream = new MemoryStream(); // don't use `using` here
+
+            await exportService.WriteToAsync(memoryStream, cancellationToken);
+
+            memoryStream.Position = 0; // reset for reading
+
+            return new FileStreamResult(memoryStream, contentType)
+            {
+                FileDownloadName = $"publishers_{DateTime.UtcNow:yyyy-MM-dd}.docx"
+            };
+        }
+
 
         // GET: Publishers/Delete/5
         public async Task<IActionResult> Delete(long? id)

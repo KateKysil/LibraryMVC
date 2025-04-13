@@ -20,8 +20,15 @@ namespace LibraryInfrastructure.Controllers
         }
 
         // GET: Reviews
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? id, string? name, string? type)
         {
+            if (type == "book")
+            {
+                if (id == null) return RedirectToAction("Books", "Index");
+                ViewBag.Id = id;
+                var CommentsByBook= _context.Reviews.Where(r=> r.BookId == id).Include(b=>b.Book).Include(b=> b.User);
+                return View(await CommentsByBook.ToListAsync());
+            }
             var libraryContext = _context.Reviews.Include(r => r.Book).Include(r => r.User);
             return View(await libraryContext.ToListAsync());
         }
@@ -46,10 +53,13 @@ namespace LibraryInfrastructure.Controllers
             return View(review);
         }
 
+        
+
         // GET: Reviews/Create
-        public IActionResult Create()
+        public IActionResult Create(int? id)
         {
-            ViewData["BookId"] = new SelectList(_context.Books, "Id", "Title");
+            var books = _context.Books.ToList();
+            ViewData["BookId"] = new SelectList(books, "Id", "Title", id);
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "FirstName");
             return View();
         }
@@ -74,7 +84,9 @@ namespace LibraryInfrastructure.Controllers
             {
                 _context.Add(review);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                TempData["AlertMessage"] = "Your comment saved!";
+                TempData["AlertType"] = "success";
+                return RedirectToAction("Index", "Books");
             }
             ViewData["BookId"] = new SelectList(_context.Books, "Id", "Title", review.BookId);
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "FirstName", review.UserId);
